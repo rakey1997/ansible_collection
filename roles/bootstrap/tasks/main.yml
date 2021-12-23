@@ -1,0 +1,79 @@
+---
+# tasks file for bootstrap
+- name: include default variables
+  include_vars: "../vars/main.yml"
+
+- name: include release specific variables
+  include_vars: "{{ _loop_var }}"
+  loop: "{{ query('first_found', _params) }}"
+  loop_control:
+    loop_var: _loop_var
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "../vars"
+      skip: true
+
+- name: set selinux disabled
+  selinux:
+    state: disabled
+- name: set swap disabled
+  replace:
+    path: /etc/fstab
+    regexp: '.*swap.*'
+    replace: '#\1'
+- name: disable transparent_hugepag
+  lineinfile: dest=/etc/rc.d/rc.local insertafter="{{item.position}}" line="{{item.value}}" state=present
+  with_items:
+  - {position: EOF, value: "echo never > /sys/kernel/mm/transparent_hugepage/defrag"}
+  - {position: EOF, value: "echo never > /sys/kernel/mm/transparent_hugepage/enabled"}
+- name: set file mode
+  file: path=/etc/rc.d/rc.local mode=755
+- name: Set sysctl file limits
+  pam_limits:
+      dest:  "{{ item.dest }}"
+      domain:  '*'
+      limit_type:  "{{ item.limit_type }}"
+      limit_item:  "{{ item.limit_item }}"
+      value:  "{{ item.value }}"
+  with_items:
+      - { dest: '/etc/security/limits.conf' ,limit_type: 'soft' ,limit_item: 'nofile' , value: '32728' }
+      - { dest: '/etc/security/limits.conf' ,limit_type: 'hard' ,limit_item: 'nofile' , value: '655350' }
+      - { dest: '/etc/security/limits.conf' ,limit_type: 'soft' ,limit_item: 'nproc' , value: '65536' }
+      - { dest: '/etc/security/limits.conf' ,limit_type: 'hard' ,limit_item: 'nproc' , value: 'unlimited' }
+      - { dest: '/etc/security/limits.conf' ,limit_type: 'soft' ,limit_item: 'memlock' , value: 'unlimited' }
+      - { dest: '/etc/security/limits.conf' ,limit_type: 'hard' ,limit_item: 'memlock' , value: 'unlimited' }
+      #- { dest: '/etc/security/limits.d/90-nproc.conf' , limit_type: 'soft' ,limit_item: 'nproc' , value: '262144' }  only for non-root user
+      #- { dest: '/etc/security/limits.d/90-nproc.conf' , limit_type: 'hard' ,limit_item: 'nproc' , value: '262144' }  only for non-root user
+- name: '/etc/fstab: Set opt "{{ opt }}" for mount point {{ point }}'
+  lineinfile:
+    path: /etc/fstab
+    backup: yes
+    backrefs: yes
+    regexp: '^(\S+\s+\{{ point }}\s+\S+\s+)(?!(?:\S*,)?{{ opt }}(?:,\S*)?\s+)(\S+)(\s+.+)$'
+    line: '\1\2,{{ opt }}\3'
+  register: fstab
+- name: 'If {{ point }} changed, remount'
+  mount:
+    path: "{{ point }}"
+    state: remounted
+  when: fstab.changed
+- name: tweak sysctl entries
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: "{{ item.state }}"
+    sysctl_file: "/etc/sysctl.conf"
+    reload: false
+  loop: "{{ bootstrap_sysctl }}"
+  notify:
+    - bootstrap | sysctl --system
+- name: flush handlers
+  meta: flush_handlers

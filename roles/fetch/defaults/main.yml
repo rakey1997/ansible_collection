@@ -1,0 +1,7 @@
+---
+# defaults file for fetch
+path:
+  - src: '/sys/class/net/eth0/address'
+    dest: '/tmp/mac/'
+  - src: '/sys/class/dmi/id/product_uuid'
+    dest: '/tmp/uuid/'

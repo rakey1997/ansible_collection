@@ -1,0 +1,5 @@
+- hosts: all
+  remote_user: root
+  become: true
+  roles:
+    - { role: service, service_todo: [{ name: "redis", enable: "no", state: "stopped" }, ] }

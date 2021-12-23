@@ -1,0 +1,6 @@
+---
+# handlers file for bootstrap
+- name: bootstrap | sysctl --system
+  command: sysctl --system
+  changed_when: false
+  failed_when: false

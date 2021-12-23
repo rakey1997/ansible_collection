@@ -1,0 +1,13 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  remote_user: root
+  become: true
+  tasks:
+    - name: date
+      command: date
+      register: result
+      changed_when: result is not succeeded
+      failed_when: "'CST' not in result.stdout"

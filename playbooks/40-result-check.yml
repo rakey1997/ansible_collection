@@ -1,0 +1,16 @@
+- hosts: all
+  remote_user: root
+  become: true
+  tasks:
+    - name: include role
+      include_role:
+        name: fetch
+      tags: fetch
+- hosts: localhost
+  remote_user: root
+  become: true
+  tasks:
+    - name: include role
+      include_role:
+        name: resultCheck
+      tags: resultCheck

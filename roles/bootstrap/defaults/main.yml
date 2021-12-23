@@ -1,0 +1,7 @@
+---
+# defaults file for bootstrap
+bootstrap_sysctl:
+  - { state: "present", name: "vm.min_free_kbytes", value: "65536" }
+  - { state: "present", name: "vm.swappiness", value: "5" }
+point: /
+opt: noatime,async

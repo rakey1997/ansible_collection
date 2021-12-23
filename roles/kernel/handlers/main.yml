@@ -1,0 +1,21 @@
+---
+# handlers file for kernel
+- name: kernel | update-grub
+  command: update-grub
+  changed_when: false
+  failed_when: false
+
+- name: kernel | update-initramfs -c -k all
+  command: update-initramfs -c -k all
+  changed_when: false
+  failed_when: false
+
+- name: kernel | grub2-mkconfig -o /boot/grub2/grub.cfg
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
+  changed_when: false
+  failed_when: false
+
+- name: kernel | dracut -f
+  command: dracut -f
+  changed_when: false
+  failed_when: false

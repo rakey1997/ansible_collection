@@ -1,0 +1,7 @@
+---
+# defaults file for resultCheck
+path:
+  - src: '/tmp/mac/'
+    dest: '/tmp/mac/allmac.log'
+  - src: '/tmp/uuid/'
+    dest: '/tmp/uuid/alluuid.log'

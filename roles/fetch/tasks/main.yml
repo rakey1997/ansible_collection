@@ -1,0 +1,48 @@
+---
+# tasks file for fetch
+- name: include default variables
+  include_vars: "../vars/main.yml"
+
+- name: include release specific variables
+  include_vars: "{{ _loop_var }}"
+  loop: "{{ query('first_found', _params) }}"
+  loop_control:
+    loop_var: _loop_var
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "../vars"
+      skip: true
+
+- name: include release specific tasks
+  include_tasks: "{{ _loop_var }}"
+  loop: "{{ query('first_found', _params) }}"
+  loop_control:
+    loop_var: _loop_var
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "."
+      skip: true
+
+- name: fetch Files to Local
+  fetch: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop: "{{ path }}"
+  tags:
+    - fetch_info

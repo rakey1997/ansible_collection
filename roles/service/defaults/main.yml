@@ -1,0 +1,5 @@
+---
+# defaults file for service
+service_todo: 
+- { name: "firewalld", enable: "no", state: "stopped" }
+- {name: "chronyd", enable: "no", state: "stopped" }

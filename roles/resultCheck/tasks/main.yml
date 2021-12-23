@@ -1,0 +1,59 @@
+---
+# tasks file for resultCheck
+- name: include default variables
+  include_vars: "../vars/main.yml"
+
+- name: include release specific variables
+  include_vars: "{{ _loop_var }}"
+  loop: "{{ query('first_found', _params) }}"
+  loop_control:
+    loop_var: _loop_var
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "../vars"
+      skip: true
+
+- name: include release specific tasks
+  include_tasks: "{{ _loop_var }}"
+  loop: "{{ query('first_found', _params) }}"
+  loop_control:
+    loop_var: _loop_var
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "."
+      skip: true
+
+- name: append file mac file
+  shell: find {{ item.src }}* -type f -exec sh -c 'cat {}>>{{ item.dest }}' \;
+  loop: "{{ path }}"
+  tags:
+    - append_file
+- name: show duplicate info
+  shell: sort "{{ item.dest }}" | uniq -d |xargs -I {} echo 'the {{ item.dest }} duplicate result is ' {}
+  loop: "{{ path }}"
+  tags:
+    - show_info
+- name: delete temporary file
+  file: 
+    path: "{{ item.src }}"
+    state: absent
+    force: yes
+  loop: "{{ path }}"
+  tags:
+    - delete_file

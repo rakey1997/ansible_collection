@@ -1,0 +1,13 @@
+---
+# defaults file for hostname
+hostnames:
+- host: 204.44.99.151
+  name: master001
+- host: 192.168.1.44
+  name: master002
+- host: 192.168.1.88
+  name: master003
+- host: 192.168.1.98
+  name: worker001
+- host: 192.168.1.78
+  name: worker002

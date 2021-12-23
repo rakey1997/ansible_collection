@@ -1,0 +1,5 @@
+---
+# defaults file for ntp
+ipsection: 192.168.1.0
+ipmask: 255.255.255.0
+ntpserver: 204.44.99.151
